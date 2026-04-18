@@ -327,7 +327,7 @@ const MarketplacePage = () => {
             /* Green wash — same corner energy as before, over a soft veil */
             "radial-gradient(circle at top left, rgba(131, 215, 158, 0.62), rgba(249, 250, 251, 0.55) 48%, rgba(131, 215, 158, 0.22) 100%)",
             "linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(249,250,251,0.45) 55%, rgba(236, 253, 245, 0.35) 100%)",
-            'url("/images/marketplace-hero-textbooks.jpg")',
+            `url("${import.meta.env.BASE_URL}images/marketplace-hero-textbooks.jpg")`,
           ].join(", "),
           backgroundSize: "cover",
           backgroundPosition: "center",
@@ -628,7 +628,7 @@ const MarketplacePage = () => {
                   objectFit: "cover",
                 }}
               >
-                <source src="/images/about.mp4" type="video/mp4" />
+                <source src={`${import.meta.env.BASE_URL}images/about.mp4`} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
             </div>
