@@ -93,7 +93,7 @@ const Footer = () => {
           <div>
             <div className="mb-4">
               <img
-                src="/profile images/logo.jpg"
+                src="profile images/logo.jpg"
                 alt="Intellectus Academy"
                 className="h-11 w-auto rounded-full object-cover"
               />

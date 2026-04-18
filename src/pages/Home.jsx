@@ -110,7 +110,7 @@ const Home = () => {
           backgroundColor: "#0b1220",
           backgroundImage: [
             "linear-gradient(115deg, rgba(248,250,252,0.97) 0%, rgba(248,250,252,0.92) 42%, rgba(248,250,252,0.55) 58%, rgba(11,18,32,0.15) 100%)",
-            'url("/images/education-about-bg.jpg")',
+            `url("${import.meta.env.BASE_URL}images/education-about-bg.jpg")`,
           ].join(", "),
           backgroundSize: "cover",
           backgroundPosition: "center",
