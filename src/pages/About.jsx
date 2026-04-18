@@ -9,11 +9,11 @@ const About = () => {
       {/* Hero Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-[#2c3e73]/5 to-white">
         <div className="max-w-7xl mx-auto">
-          <div className="max-w-3xl mx-auto text-center mb-10">
-            <h1 className="text-5xl font-bold text-[#2c3e73] mb-6">
+          <div className="max-w-3xl mx-auto text-center mb-10 px-1">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-[#2c3e73] mb-6 break-words">
               About Intellectus Academy
             </h1>
-            <p className="text-xl text-gray-600 leading-relaxed">
+            <p className="text-lg sm:text-xl text-gray-600 leading-relaxed">
               We believe every student has the potential to excel. Our mission
               is to unlock that potential through personalized, high-quality
               tutoring that builds confidence and achieves results.

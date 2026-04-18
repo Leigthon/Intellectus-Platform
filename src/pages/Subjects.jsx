@@ -17,9 +17,11 @@ export default function Subjects() {
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-black text-[#2c3e73] mb-3">Subjects</h1>
-          <p className="text-gray-600 text-lg">
+        <div className="text-center mb-12 px-1">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#2c3e73] mb-3">
+            Subjects
+          </h1>
+          <p className="text-gray-600 text-base sm:text-lg">
             Choose a subject and let’s build confidence and results.
           </p>
         </div>

@@ -321,7 +321,7 @@ const MarketplacePage = () => {
       <section
         style={{
           position: "relative",
-          padding: "72px 16px 80px",
+          padding: "clamp(56px, 12vw, 72px) clamp(12px, 4vw, 16px) clamp(56px, 12vw, 80px)",
           backgroundColor: "#f3faf6",
           backgroundImage: [
             /* Green wash — same corner energy as before, over a soft veil */
@@ -339,22 +339,24 @@ const MarketplacePage = () => {
             maxWidth: "1120px",
             margin: "0 auto",
             display: "grid",
-            gap: "40px",
+            gap: "clamp(24px, 5vw, 40px)",
             alignItems: "center",
+            width: "100%",
+            minWidth: 0,
           }}
         >
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h1
               style={{
-                marginTop: "5rem",
-                marginBottom: "3rem",
-                marginLeft: "25%",
-                flex: "center",
-                fontSize: "40px",
-                lineHeight: 1.1,
+                marginTop: "clamp(3.5rem, 12vw, 5rem)",
+                marginBottom: "clamp(1.25rem, 4vw, 3rem)",
+                marginLeft: 0,
+                fontSize: "clamp(1.5rem, 5.5vw, 2.5rem)",
+                lineHeight: 1.15,
                 fontWeight: 900,
                 color: "#4b4949ff",
               }}
+              className="text-center sm:text-left"
             >
               What are you looking for?
             </h1>
@@ -367,6 +369,7 @@ const MarketplacePage = () => {
                 gap: "12px",
                 flexWrap: "wrap",
                 width: "100%",
+                minWidth: 0,
               }}
             >
               <div style={{ flex: "1 1 260px", minWidth: 0 }}>
@@ -716,7 +719,7 @@ const MarketplacePage = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
               gap: "20px",
             }}
           >
@@ -813,7 +816,7 @@ const MarketplacePage = () => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 260px), 1fr))",
                 gap: "20px",
               }}
             >
@@ -1117,6 +1120,7 @@ const ListingCard = ({
       display: "flex",
       flexDirection: "column",
       gap: "10px",
+      minWidth: 0,
     }}
   >
     <div
@@ -1582,6 +1586,7 @@ const MarketplaceSearchBar = ({
       onSubmit={handleSubmit}
       style={{
         width: "100%",
+        minWidth: 0,
         backgroundColor: "rgba(255,255,255,0.95)",
         borderRadius: "999px",
         padding: "6px 6px 6px 16px",
@@ -1611,6 +1616,7 @@ const MarketplaceSearchBar = ({
         placeholder="Search textbooks by title, course, or ISBN"
         style={{
           flex: 1,
+          minWidth: 0,
           border: "none",
           outline: "none",
           background: "transparent",

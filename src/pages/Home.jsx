@@ -76,7 +76,7 @@ const Home = () => {
           background: "radial-gradient(circle at top left, #01d5ff2f, #4bfa0036, #ff140337 105%)",
           color: "black",
           padding: "12px 16px",
-          fontSize: "14px",
+          fontSize: "clamp(11px, 2.8vw, 14px)",
           textTransform: "uppercase",
           overflow: "hidden",
           whiteSpace: "nowrap",
@@ -106,7 +106,7 @@ const Home = () => {
         id="about"
         style={{
           position: "relative",
-          padding: "64px 16px 80px",
+          padding: "clamp(40px, 8vw, 64px) clamp(12px, 4vw, 16px) clamp(48px, 10vw, 80px)",
           backgroundColor: "#0b1220",
           backgroundImage: [
             "linear-gradient(115deg, rgba(248,250,252,0.97) 0%, rgba(248,250,252,0.92) 42%, rgba(248,250,252,0.55) 58%, rgba(11,18,32,0.15) 100%)",
@@ -118,14 +118,7 @@ const Home = () => {
         }}
       >
         <div
-          style={{
-            maxWidth: "95%",
-            margin: "0 auto",
-            display: "grid",
-            gridTemplateColumns: "minmax(0, 2fr) minmax(0, 3fr)",
-            gap: "40px",
-            alignItems: "center",
-          }}
+          className="mx-auto w-full max-w-[min(1200px,100%)] grid grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-10"
         >
           {/* Left: intro */}
           <div>
@@ -143,7 +136,7 @@ const Home = () => {
             <h2
               style={{
                 marginTop: "12px",
-                fontSize: "32px",
+                fontSize: "clamp(1.5rem, 4vw, 2rem)",
                 lineHeight: 1.2,
                 fontWeight: 900,
                 color: "#111827",
@@ -192,11 +185,8 @@ const Home = () => {
 
           {/* Right: three pillars */}
           <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-              gap: "20px",
-            }}
+            className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+            style={{ gap: "20px" }}
           >
           </div>
         </div>
@@ -217,7 +207,7 @@ const Home = () => {
        {/* Our Platforms cards */}
       <section
         style={{
-          padding: "20px 16px 64px",
+          padding: "clamp(16px, 4vw, 20px) clamp(12px, 4vw, 16px) clamp(40px, 10vw, 64px)",
           background: "radial-gradient(circle at top left, #819bbfff, #d3dfeaff 95%)",
         }}
       >
@@ -247,7 +237,7 @@ const Home = () => {
             <h2
               style={{
                 marginTop: "12px",
-                fontSize: "32px",
+                fontSize: "clamp(1.375rem, 4vw, 2rem)",
                 fontWeight: 900,
                 color: "#3b404fff",
               }}

@@ -53,10 +53,10 @@ export default function Bursary() {
             <p className="text-sm font-semibold tracking-[0.2em] uppercase text-[#1ac8db] mb-3">
               Intellectus Academy Bursary Assistant and University Assistant
             </p>
-            <h1 className="text-4xl md:text-5xl font-black text-[#2c3e73] mb-4 leading-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-[#2c3e73] mb-4 leading-tight break-words">
               Matric Bursary and University Guide
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 leading-relaxed">
               Are you a matriculant ? are you overwelmed with by University applications and unsure how you are going to fund your studies?
               We can help you with that
             </p>

@@ -23,7 +23,7 @@ import {
 
 export default function App() {
   return (
-    <div className="App">
+    <div className="App min-h-screen w-full max-w-[100vw] overflow-x-hidden">
       {/* <BrowserRouter basename="/">
         <Header />
         <Routes>

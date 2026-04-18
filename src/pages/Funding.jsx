@@ -10,9 +10,12 @@ import {
   GraduationCap,
   HeartHandshake,
   Pencil,
+  Search,
   Sparkles,
   Trash2,
+  UserRound,
   Users,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,6 +44,41 @@ function writeProfiles(list) {
 
 function newProfileId() {
   return `p-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function parseOptionalAge(value) {
+  const n = Number.parseInt(String(value).trim(), 10);
+  if (Number.isNaN(n)) return null;
+  if (n < 10 || n > 99) return null;
+  return n;
+}
+
+function profileMatchesFunderSearch(profile, filters) {
+  const ageQ = parseOptionalAge(filters.age);
+  if (ageQ != null) {
+    const profileAge =
+      typeof profile.age === "number" && Number.isFinite(profile.age)
+        ? profile.age
+        : null;
+    if (profileAge !== ageQ) return false;
+  }
+
+  const subj = filters.subject.trim().toLowerCase();
+  if (subj && !(profile.fieldOfStudy || "").toLowerCase().includes(subj)) {
+    return false;
+  }
+
+  const school = filters.school.trim().toLowerCase();
+  if (school && !(profile.institutionName || "").toLowerCase().includes(school)) {
+    return false;
+  }
+
+  const loc = filters.location.trim().toLowerCase();
+  if (loc && !(profile.city || "").toLowerCase().includes(loc)) {
+    return false;
+  }
+
+  return true;
 }
 
 function readFileAsDataUrl(file) {
@@ -83,6 +121,7 @@ const fundingMailto = (profile, supportLabel) => {
       `Student email: ${profile.studentEmail || "Not provided"}\n` +
       `Profile ID: ${profile.id}\n` +
       `Study level: ${profile.studyLevel}\n` +
+      `Age: ${typeof profile.age === "number" ? profile.age : "Not provided"}\n` +
       `Focus area: ${profile.fieldOfStudy}\n` +
       `City / region: ${profile.city}\n` +
       `Their stated needs: ${needs}\n\n` +
@@ -100,10 +139,18 @@ const Funding = () => {
   const [formError, setFormError] = useState("");
   const [editingProfileId, setEditingProfileId] = useState(null);
   const [manageEmail, setManageEmail] = useState("");
+  const [funderSearch, setFunderSearch] = useState({
+    age: "",
+    subject: "",
+    school: "",
+    location: "",
+  });
+  const [profileToView, setProfileToView] = useState(null);
   const [form, setForm] = useState({
     studentType: "highschool",
     displayName: "",
     studentEmail: "",
+    age: "",
     studyLevel: STUDY_LEVELS[1],
     highSchoolGrade: HIGH_SCHOOL_GRADES[0],
     institutionName: "",
@@ -128,6 +175,18 @@ const Funding = () => {
     return n;
   }, [form.needTutoring, form.needTextbooks]);
 
+  const parsedFormAge = useMemo(() => {
+    const t = form.age.trim();
+    if (!t) return null;
+    return parseOptionalAge(t);
+  }, [form.age]);
+
+  const ageFieldInvalid = useMemo(() => {
+    const t = form.age.trim();
+    if (!t) return false;
+    return parsedFormAge == null;
+  }, [form.age, parsedFormAge]);
+
   const canSubmitProfile = useMemo(() => {
     const email = form.studentEmail.trim().toLowerCase();
     return (
@@ -137,9 +196,24 @@ const Funding = () => {
       form.fieldOfStudy.trim().length >= 2 &&
       form.city.trim().length >= 2 &&
       form.bio.trim().length >= 40 &&
-      needsList.length > 0
+      needsList.length > 0 &&
+      !ageFieldInvalid
     );
-  }, [form, needsList.length]);
+  }, [form, needsList.length, ageFieldInvalid]);
+
+  const filteredProfiles = useMemo(
+    () => profiles.filter((p) => profileMatchesFunderSearch(p, funderSearch)),
+    [profiles, funderSearch]
+  );
+
+  const hasActiveFunderSearch = useMemo(
+    () =>
+      funderSearch.age.trim() !== "" ||
+      funderSearch.subject.trim() !== "" ||
+      funderSearch.school.trim() !== "" ||
+      funderSearch.location.trim() !== "",
+    [funderSearch]
+  );
 
   const onChange = useCallback((key) => {
     return (e) => {
@@ -211,6 +285,7 @@ const Funding = () => {
       studentType: form.studentType,
       displayName: form.displayName.trim(),
       studentEmail: normalizedEmail,
+      age: parseOptionalAge(form.age),
       studyLevel: form.studyLevel,
       highSchoolGrade: form.studentType === "highschool" ? form.highSchoolGrade : "",
       institutionName: form.institutionName.trim(),
@@ -237,6 +312,7 @@ const Funding = () => {
       studentType: "highschool",
       displayName: "",
       studentEmail: "",
+      age: "",
       studyLevel: STUDY_LEVELS[1],
       highSchoolGrade: HIGH_SCHOOL_GRADES[0],
       institutionName: "",
@@ -262,6 +338,10 @@ const Funding = () => {
         studentType: profile.studentType || "tertiary",
         displayName: profile.displayName || "",
         studentEmail: profile.studentEmail || "",
+        age:
+          typeof profile.age === "number" && Number.isFinite(profile.age)
+            ? String(profile.age)
+            : "",
         studyLevel: profile.studyLevel || STUDY_LEVELS[1],
         highSchoolGrade: profile.highSchoolGrade || HIGH_SCHOOL_GRADES[0],
         institutionName: profile.institutionName || "",
@@ -286,6 +366,15 @@ const Funding = () => {
     }
   }, [editingProfileId]);
 
+  useEffect(() => {
+    if (!profileToView) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") setProfileToView(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [profileToView]);
+
   return (
     <div className="min-h-screen bg-white pt-16">
       <main>
@@ -297,7 +386,7 @@ const Funding = () => {
             <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-rose-700">
               Intellectus Funding
             </p>
-            <h1 className="mt-3 text-center text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">
+            <h1 className="mt-3 text-center text-3xl font-black tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
               Fund learning. Get funded.
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-center text-lg text-slate-600">
@@ -528,6 +617,27 @@ const Funding = () => {
                       autoComplete="email"
                     />
                   </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-800" htmlFor="student-age">
+                      Age (optional)
+                    </label>
+                    <input
+                      id="student-age"
+                      type="number"
+                      inputMode="numeric"
+                      min={10}
+                      max={99}
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2 sm:max-w-xs"
+                      value={form.age}
+                      onChange={onChange("age")}
+                      placeholder="e.g. 17 — helps funders find you"
+                    />
+                    {ageFieldInvalid && (
+                      <p className="mt-1 text-xs text-rose-600">
+                        Enter a whole number between 10 and 99, or leave blank.
+                      </p>
+                    )}
+                  </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="text-sm font-semibold text-slate-800" htmlFor="lvl">
@@ -672,6 +782,7 @@ const Funding = () => {
                           studentType: "highschool",
                           displayName: "",
                           studentEmail: "",
+                          age: "",
                           studyLevel: STUDY_LEVELS[1],
                           highSchoolGrade: HIGH_SCHOOL_GRADES[0],
                           institutionName: "",
@@ -735,8 +846,118 @@ const Funding = () => {
                 </p>
               </div>
             ) : (
+              <>
+                <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:p-5">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2 text-amber-900">
+                      <Search className="h-5 w-5 shrink-0" aria-hidden />
+                      <span className="text-sm font-bold">Search students</span>
+                    </div>
+                    {hasActiveFunderSearch && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFunderSearch({
+                            age: "",
+                            subject: "",
+                            school: "",
+                            location: "",
+                          })
+                        }
+                        className="self-start text-sm font-semibold text-rose-700 underline-offset-4 hover:underline"
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-600 sm:text-sm">
+                    Filter by age (exact), subject or course focus, school, or location. All
+                    filled fields must match.
+                  </p>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700" htmlFor="filter-age">
+                        Age
+                      </label>
+                      <input
+                        id="filter-age"
+                        type="number"
+                        inputMode="numeric"
+                        min={10}
+                        max={99}
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                        value={funderSearch.age}
+                        onChange={(e) =>
+                          setFunderSearch((s) => ({ ...s, age: e.target.value }))
+                        }
+                        placeholder="e.g. 17"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className="text-xs font-semibold text-slate-700"
+                        htmlFor="filter-subject"
+                      >
+                        Subject / focus
+                      </label>
+                      <input
+                        id="filter-subject"
+                        type="search"
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                        value={funderSearch.subject}
+                        onChange={(e) =>
+                          setFunderSearch((s) => ({ ...s, subject: e.target.value }))
+                        }
+                        placeholder="e.g. Maths, engineering"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-semibold text-slate-700" htmlFor="filter-school">
+                        School / institution
+                      </label>
+                      <input
+                        id="filter-school"
+                        type="search"
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                        value={funderSearch.school}
+                        onChange={(e) =>
+                          setFunderSearch((s) => ({ ...s, school: e.target.value }))
+                        }
+                        placeholder="Part of the name"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        className="text-xs font-semibold text-slate-700"
+                        htmlFor="filter-location"
+                      >
+                        Location
+                      </label>
+                      <input
+                        id="filter-location"
+                        type="search"
+                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                        value={funderSearch.location}
+                        onChange={(e) =>
+                          setFunderSearch((s) => ({ ...s, location: e.target.value }))
+                        }
+                        placeholder="City or region"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {filteredProfiles.length === 0 ? (
+                  <div className="mt-10 rounded-2xl border border-dashed border-amber-200 bg-white p-10 text-center text-slate-600">
+                    <p className="font-medium text-slate-800">No profiles match your search</p>
+                    <p className="mt-2 text-sm text-slate-500">
+                      Try different keywords, or clear filters to see everyone again. Age
+                      matches only students who listed their age on their profile.
+                    </p>
+                  </div>
+                ) : (
               <ul className="mt-10 grid gap-6 sm:grid-cols-2">
-                {profiles.map((p) => (
+                {filteredProfiles.map((p) => (
                   <li key={p.id}>
                     <Card className="h-full border-slate-200 shadow-sm transition-shadow hover:shadow-md">
                       <CardHeader className="pb-2">
@@ -766,6 +987,7 @@ const Funding = () => {
                         <CardTitle className="text-lg text-slate-900">{p.displayName}</CardTitle>
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                           {p.studyLevel} · {p.city}
+                          {typeof p.age === "number" ? ` · Age ${p.age}` : ""}
                         </p>
                         {p.studentType === "highschool" && p.highSchoolGrade ? (
                           <p className="text-xs font-medium uppercase tracking-wide text-rose-600">
@@ -795,7 +1017,16 @@ const Funding = () => {
                           ))}
                         </div>
                         <p className="text-xs text-slate-400">Profile ID: {p.id}</p>
-                        <div className="flex flex-col gap-2 sm:flex-row">
+                        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setProfileToView(p)}
+                            className="rounded-full border-slate-300 px-4 py-2 text-sm"
+                          >
+                            <UserRound className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                            View full profile
+                          </Button>
                           {p.needs?.some((n) => n.includes("Tutoring")) && (
                             <Button
                               href={fundingMailto(p, "Tutoring sessions")}
@@ -841,6 +1072,8 @@ const Funding = () => {
                   </li>
                 ))}
               </ul>
+                )}
+              </>
             )}
           </div>
         </section>
@@ -894,6 +1127,143 @@ const Funding = () => {
             Email Intellectus Funding
           </Button>
         </section>
+
+        {profileToView && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-[2px]"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="funding-profile-dialog-title"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setProfileToView(null);
+            }}
+          >
+            <div
+              className="relative max-h-[min(90vh,720px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl sm:p-8"
+              onMouseDown={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setProfileToView(null)}
+                className="absolute right-3 top-3 rounded-full p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-800"
+                aria-label="Close profile"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <div className="flex flex-col gap-4 pr-8">
+                <div className="flex items-start gap-4">
+                  {profileToView.profileImageDataUrl ? (
+                    <img
+                      src={profileToView.profileImageDataUrl}
+                      alt={`${profileToView.displayName} profile`}
+                      className="h-16 w-16 shrink-0 rounded-full border border-slate-200 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-rose-100 text-xl font-bold text-rose-700">
+                      {profileToView.displayName.slice(0, 1).toUpperCase()}
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <h3
+                      id="funding-profile-dialog-title"
+                      className="text-xl font-bold text-slate-900"
+                    >
+                      {profileToView.displayName}
+                    </h3>
+                    <p className="mt-1 text-sm font-medium text-slate-600">
+                      {profileToView.studyLevel} · {profileToView.city}
+                      {typeof profileToView.age === "number"
+                        ? ` · Age ${profileToView.age}`
+                        : ""}
+                    </p>
+                    {profileToView.studentType === "highschool" &&
+                      profileToView.highSchoolGrade && (
+                        <p className="mt-0.5 text-xs font-semibold uppercase tracking-wide text-rose-600">
+                          {profileToView.highSchoolGrade}
+                        </p>
+                      )}
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-sm">
+                  <p>
+                    <span className="font-semibold text-slate-800">
+                      {profileToView.studentType === "highschool" ? "School" : "Institution"}
+                      :{" "}
+                    </span>
+                    <span className="text-slate-700">{profileToView.institutionName}</span>
+                  </p>
+                  <p>
+                    <span className="font-semibold text-slate-800">
+                      {profileToView.studentType === "highschool"
+                        ? "Main subjects / goals"
+                        : "Field / course focus"}
+                      :{" "}
+                    </span>
+                    <span className="text-rose-900">{profileToView.fieldOfStudy}</span>
+                  </p>
+                  <p className="flex flex-wrap items-center gap-x-1 text-slate-600">
+                    <Mail className="inline h-4 w-4 shrink-0 text-slate-500" aria-hidden />
+                    <span className="break-all">{profileToView.studentEmail}</span>
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
+                    About their goals
+                  </p>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
+                    {profileToView.bio}
+                  </p>
+                </div>
+
+                {profileToView.transcriptName && (
+                  <a
+                    href={profileToView.transcriptDataUrl}
+                    download={profileToView.transcriptName}
+                    className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50"
+                  >
+                    <FileText className="h-4 w-4" aria-hidden />
+                    Download transcript ({profileToView.transcriptName})
+                  </a>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {profileToView.needs?.map((n) => (
+                    <span
+                      key={n}
+                      className="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-800"
+                    >
+                      {n}
+                    </span>
+                  ))}
+                </div>
+
+                <p className="text-xs text-slate-400">Profile ID: {profileToView.id}</p>
+
+                <div className="flex flex-col gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap">
+                  {profileToView.needs?.some((n) => n.includes("Tutoring")) && (
+                    <Button
+                      href={fundingMailto(profileToView, "Tutoring sessions")}
+                      className="rounded-full bg-rose-500 px-4 py-2 text-sm text-white hover:bg-rose-600"
+                    >
+                      Fund tutoring
+                    </Button>
+                  )}
+                  {profileToView.needs?.some((n) => n.includes("Textbook")) && (
+                    <Button
+                      href={fundingMailto(profileToView, "Textbooks")}
+                      variant="outline"
+                      className="rounded-full border-amber-300 px-4 py-2 text-sm text-amber-900 hover:bg-amber-50"
+                    >
+                      Fund textbooks
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

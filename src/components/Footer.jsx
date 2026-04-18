@@ -117,7 +117,10 @@ const Footer = () => {
               ))}
               <li className={`flex items-center gap-2 text-sm ${theme.text}`}>
                 <Mail className={`w-4 h-4 ${theme.accent}`} />
-                <a href={`mailto:${contactInfo.email}`} className={`${theme.hover} transition-colors`}>
+                <a
+                  href={`mailto:${contactInfo.email}`}
+                  className={`${theme.hover} transition-colors break-all sm:break-words`}
+                >
                   {contactInfo.email}
                 </a>
               </li>

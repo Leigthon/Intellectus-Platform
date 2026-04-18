@@ -85,9 +85,11 @@ export default function Contact() {
   return (
     <div className="min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
       <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-black text-[#2c3e73] mb-3">Contact</h1>
-          <p className="text-gray-600 text-lg">
+        <div className="text-center mb-12 px-1">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#2c3e73] mb-3">
+            Contact
+          </h1>
+          <p className="text-gray-600 text-base sm:text-lg">
             Tell us what you need help with and we’ll get back to you.
           </p>
         </div>

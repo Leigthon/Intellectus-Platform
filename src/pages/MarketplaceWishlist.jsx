@@ -144,7 +144,7 @@ const MarketplaceWishlistPage = () => {
               <h1
                 style={{
                   marginTop: "10px",
-                  fontSize: "26px",
+                  fontSize: "clamp(1.25rem, 4vw, 1.625rem)",
                   fontWeight: 800,
                   color: "#111827",
                 }}

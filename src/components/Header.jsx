@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import { Button } from "./ui/button";
 
 /**
  * Header supports per-route configuration for logo and hover color.
@@ -27,24 +26,45 @@ const Header = () => {
       hoverTextClass: "hover:text-[#2c3e73]",
       hoverBgClass: "hover:bg-[#2c3e73]/10",
       underlineClass: "bg-[#808080]",
+      mobileMenu: {
+        panel:
+          "border-t border-slate-200/90 bg-gradient-to-b from-white via-slate-50/90 to-slate-100/80 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]",
+        linkIdle: "text-slate-700 hover:bg-slate-100/95",
+        linkActive: "text-[#2c3e73] bg-[#2c3e73]/12 font-semibold",
+        burgerRing: "hover:bg-slate-100 text-slate-700",
+      },
     },
     "/marketplace": {
       logo: "profile images/logo.jpg",
       title: "Intellectus",
-      subtitle:"MARKETPLACE",
+      subtitle: "MARKETPLACE",
       color: "bg-[#6b8e23]",
       hoverTextClass: "hover:text-[#6b8e23]",
       hoverBgClass: "hover:bg-[#6b8e23]/10",
       underlineClass: "bg-[#6b8e23]",
+      mobileMenu: {
+        panel:
+          "border-t border-[#6b8e23]/35 bg-gradient-to-b from-[#f4f9ee] via-white to-[#eef6e4] shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]",
+        linkIdle: "text-slate-800 hover:bg-[#6b8e23]/14",
+        linkActive: "text-[#3d5210] bg-[#6b8e23]/18 font-semibold border-l-[3px] border-[#6b8e23]",
+        burgerRing: "hover:bg-[#6b8e23]/12 text-[#4a6218]",
+      },
     },
     "/funding": {
       logo: "profile images/logo.jpg",
       title: "Intellectus",
       subtitle: "FUNDING",
-      color:"bg-[#ff6b6b]",
+      color: "bg-[#ff6b6b]",
       hoverTextClass: "hover:text-[#ff6b6b]",
-      hoverBgClass: "hover:bg-[#ff6b6b]]/10",
+      hoverBgClass: "hover:bg-[#ff6b6b]/10",
       underlineClass: "bg-[#ff6b6b]",
+      mobileMenu: {
+        panel:
+          "border-t border-rose-200/80 bg-gradient-to-b from-rose-50/95 via-white to-rose-50/60 shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]",
+        linkIdle: "text-slate-800 hover:bg-rose-100/70",
+        linkActive: "text-rose-800 bg-rose-100/95 font-semibold border-l-[3px] border-rose-500",
+        burgerRing: "hover:bg-rose-100/80 text-rose-700",
+      },
     },
   };
 
@@ -128,6 +148,9 @@ const Header = () => {
   const matchedKey = getMatchingKey(headerConfig, normalizedEffectivePath);
   const config = matchedKey ? headerConfig[matchedKey] : headerConfig["/"];
 
+  const mobileMenu =
+    config.mobileMenu || headerConfig["/"].mobileMenu;
+
   // Subtitle color/class handling: support either a Tailwind class via
   // config.subtitleClass or a raw color (hex) via config.color. Also allow
   // values like 'bg-[#6b8e23]' or 'text-[#6b8e23]' by extracting the hex.
@@ -174,18 +197,18 @@ const Header = () => {
     
 
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-14 sm:h-16 gap-2 min-w-0">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1">
             <img
               src={config.logo}
               alt={`${config.title || "Intellectus"} logo`}
-              className="h-12 w-auto rounded-full object-cover"
+              className="h-9 w-9 sm:h-12 sm:w-auto shrink-0 rounded-full object-cover"
             />
-            <div className="flex flex-col leading-tight">
-              <span className="text-[20px] chunkfive-font text-gray-600 flex items-center gap-2">
-                <span>{config.title || "Intellectus"}<span className="text-[5px] chunkfive-font text-gray-500">©</span></span>
+            <div className="flex flex-col leading-tight min-w-0">
+              <span className="text-base sm:text-[20px] chunkfive-font text-gray-600 flex items-center gap-1 sm:gap-2 truncate">
+                <span className="truncate">{config.title || "Intellectus"}<span className="text-[5px] chunkfive-font text-gray-500 shrink-0">©</span></span>
                 
                 {/* {process.env.NODE_ENV !== "production" && (
                   <span className="ml-2 px-2 py-1 text-xs text-[#1ac8db] bg-[#e6f7fa] rounded-md border border-[#d0f0f4]">
@@ -195,7 +218,7 @@ const Header = () => {
               </span>
              
               <span
-                className={`text-[9px] font-normal ${subtitleClass}`}
+                className={`text-[8px] sm:text-[9px] font-normal truncate ${subtitleClass}`}
                 style={subtitleColor ? { color: subtitleColor } : undefined}
               >
                 {config.subtitle || ""}
@@ -234,30 +257,38 @@ const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
+            type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Toggle Menu"
+            className={`md:hidden p-2 rounded-lg transition-colors ${mobileMenu.burgerRing}`}
+            aria-expanded={isMenuOpen}
+            aria-label={isMenuOpen ? "Close menu" : "Open menu"}
           >
             {isMenuOpen ? (
-              <X className="w-6 h-6 text-gray-700" />
+              <X className="h-6 w-6" aria-hidden />
             ) : (
-              <Menu className="w-6 h-6 text-gray-700" />
+              <Menu className="h-6 w-6" aria-hidden />
             )}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu — colours follow the active route (see headerConfig.mobileMenu) */}
       {isMenuOpen && (
-        <div className="md:hidden bg-white border-t border-gray-200">
-          <nav className="px-4 py-4 space-y-3">
-            {navLinks.map((link) => (
-              link.path && link.path.startsWith("http") ? (
+        <div
+          className={`md:hidden max-h-[min(70vh,calc(100dvh-3.5rem))] overflow-y-auto overscroll-contain backdrop-blur-sm ${mobileMenu.panel}`}
+        >
+          <nav className="space-y-1 px-3 py-3 sm:px-4 sm:py-4">
+            {navLinks.map((link) => {
+              const active = isActive(link.path);
+              const itemClass = `block rounded-xl px-4 py-3 text-[15px] transition-colors ${
+                active ? mobileMenu.linkActive : mobileMenu.linkIdle
+              }`;
+              return link.path && link.path.startsWith("http") ? (
                 <a
                   key={link.name + link.path}
                   href={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block px-4 py-2 rounded-lg transition-colors ${isActive(link.path) ? `${config.hoverBgClass} text-[#1ac8db] font-medium` : `text-gray-700 ${config.hoverBgClass}`}`}
+                  className={itemClass}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -268,17 +299,12 @@ const Header = () => {
                   key={link.name + link.path}
                   to={link.path}
                   onClick={() => setIsMenuOpen(false)}
-                  className={`block px-4 py-2 rounded-lg transition-colors ${isActive(link.path) ? `${config.hoverBgClass} text-[#1ac8db] font-medium` : `text-gray-700 ${config.hoverBgClass}`}`}
+                  className={itemClass}
                 >
                   {link.name}
                 </Link>
-              )
-            ))}
-            <a href="/contact" onClick={() => setIsMenuOpen(false)}>
-              <Button className="w-full bg-[#1ac8db] hover:bg-[#15a3c0] text-white">
-                Book Session
-              </Button>
-            </a>
+              );
+            })}
           </nav>
         </div>
       )}
