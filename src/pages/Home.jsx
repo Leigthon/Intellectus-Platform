@@ -7,7 +7,7 @@ const platforms = [
     tagline: "Personalized tutoring and academic support",
     description:
       "One-on-one and group tutoring tailored to each student’s goals, helping them own their academic success.",
-    image: "/images/Tutoring.jpg", // update to your row image
+    image: "images/Tutoring.jpg", // update to your row image
     background: "#1ac8db",
     ctaLabel: "Explore Academy",
     ctaHref: "#academy",
@@ -18,7 +18,7 @@ const platforms = [
     tagline: "Invest in talent",
     description:
       "Connects sponsors with students to fund tutoring sessions and essential learning resources.",
-    image: "/images/Funding.jpg", // update to your row image
+    image: "images/Funding.jpg", // update to your row image
     background: "#e53935",
     ctaLabel: "Explore Funding",
     ctaHref: "#funding",
@@ -29,7 +29,7 @@ const platforms = [
     tagline: "Textbooks made affordable",
     description:
       "A secure, flat-fee marketplace where students can buy and sell textbooks for less.",
-    image: "/images/Marketplace.jpg", // update to your row image
+    image: "images/Marketplace.jpg", // update to your row image
     background: "#2e7d32",
     ctaLabel: "Visit Marketplace",
     ctaHref: "#marketplace",
