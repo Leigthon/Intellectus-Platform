@@ -186,7 +186,7 @@ const Funding = () => {
         setProfiles(data);
         setProfilesError("");
       })
-      .catch(() => setProfilesError("Could not load profiles. Is the server running?"))
+      .catch(() => setProfilesError("Could not load profiles."))
       .finally(() => setProfilesLoading(false));
   }, []);
 
