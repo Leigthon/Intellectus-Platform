@@ -22,7 +22,7 @@ const Header = () => {
   const headerConfig = {
     // default / home
     "/": {
-      logo: "/profile images/logo.jpg",
+      logo: "profile images/logo.jpg",
       title: "Intellectus",
       hoverTextClass: "hover:text-[#2c3e73]",
       hoverBgClass: "hover:bg-[#2c3e73]/10",
