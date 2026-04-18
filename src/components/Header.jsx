@@ -29,7 +29,7 @@ const Header = () => {
       underlineClass: "bg-[#808080]",
     },
     "/marketplace": {
-      logo: "/profile images/logo.jpg",
+      logo: "profile images/logo.jpg",
       title: "Intellectus",
       subtitle:"MARKETPLACE",
       color: "bg-[#6b8e23]",
@@ -38,7 +38,7 @@ const Header = () => {
       underlineClass: "bg-[#6b8e23]",
     },
     "/funding": {
-      logo: "/profile images/logo.jpg",
+      logo: "profile images/logo.jpg",
       title: "Intellectus",
       subtitle: "FUNDING",
       color:"bg-[#ff6b6b]",
