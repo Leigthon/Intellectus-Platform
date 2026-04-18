@@ -24,25 +24,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CONTACT_EMAIL } from "@/pages/Marketplace";
 
-const PROFILES_STORAGE_KEY = "intellectus-funding-student-profiles";
+const API_BASE = "/api/profiles";
 const MAX_IMAGE_SIZE_BYTES = 1024 * 1024 * 2;
 const MAX_TRANSCRIPT_SIZE_BYTES = 1024 * 1024 * 3;
 
-function readProfiles() {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(PROFILES_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+async function fetchProfiles() {
+  const res = await fetch(API_BASE);
+  if (!res.ok) throw new Error("Failed to load profiles");
+  return res.json();
 }
 
-function writeProfiles(list) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(PROFILES_STORAGE_KEY, JSON.stringify(list));
+async function saveProfile(profile) {
+  const res = await fetch(API_BASE, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profile),
+  });
+  if (!res.ok) throw new Error("Failed to save profile");
+  return res.json();
+}
+
+async function deleteProfile(id) {
+  const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Failed to delete profile");
 }
 
 function newProfileId() {
@@ -142,7 +146,9 @@ const fundingMailto = (profile, supportLabel) => {
 };
 
 const Funding = () => {
-  const [profiles, setProfiles] = useState(() => readProfiles());
+  const [profiles, setProfiles] = useState([]);
+  const [profilesLoading, setProfilesLoading] = useState(true);
+  const [profilesError, setProfilesError] = useState("");
   const [formSaved, setFormSaved] = useState(false);
   const [formError, setFormError] = useState("");
   const [editingProfileId, setEditingProfileId] = useState(null);
@@ -174,8 +180,15 @@ const Funding = () => {
   });
 
   useEffect(() => {
-    writeProfiles(profiles);
-  }, [profiles]);
+    setProfilesLoading(true);
+    fetchProfiles()
+      .then((data) => {
+        setProfiles(data);
+        setProfilesError("");
+      })
+      .catch(() => setProfilesError("Could not load profiles. Is the server running?"))
+      .finally(() => setProfilesLoading(false));
+  }, []);
 
   const needsList = useMemo(() => {
     const n = [];
@@ -277,7 +290,7 @@ const Funding = () => {
     }
   };
 
-  const submitProfile = (e) => {
+  const submitProfile = async (e) => {
     e.preventDefault();
     if (!canSubmitProfile) return;
     const normalizedEmail = form.studentEmail.trim().toLowerCase();
@@ -310,34 +323,39 @@ const Funding = () => {
         profiles.find((p) => p.id === editingProfileId)?.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setProfiles((prev) =>
-      editingProfileId
-        ? prev.map((p) => (p.id === editingProfileId ? profile : p))
-        : [profile, ...prev]
-    );
-    setFormSaved(true);
-    setFormError("");
-    setEditingProfileId(null);
-    setForm({
-      studentType: "highschool",
-      displayName: "",
-      studentEmail: "",
-      age: "",
-      studyLevel: STUDY_LEVELS[1],
-      highSchoolGrade: HIGH_SCHOOL_GRADES[0],
-      institutionName: "",
-      fieldOfStudy: "",
-      city: "",
-      bio: "",
-      profileImageDataUrl: "",
-      transcriptDataUrl: "",
-      transcriptName: "",
-      needTutoring: true,
-      needTextbooks: false,
-    });
-    window.setTimeout(() => setFormSaved(false), 5000);
-    const el = document.getElementById("browse-profiles");
-    el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    try {
+      await saveProfile(profile);
+      setProfiles((prev) =>
+        editingProfileId
+          ? prev.map((p) => (p.id === editingProfileId ? profile : p))
+          : [profile, ...prev]
+      );
+      setFormSaved(true);
+      setFormError("");
+      setEditingProfileId(null);
+      setForm({
+        studentType: "highschool",
+        displayName: "",
+        studentEmail: "",
+        age: "",
+        studyLevel: STUDY_LEVELS[1],
+        highSchoolGrade: HIGH_SCHOOL_GRADES[0],
+        institutionName: "",
+        fieldOfStudy: "",
+        city: "",
+        bio: "",
+        profileImageDataUrl: "",
+        transcriptDataUrl: "",
+        transcriptName: "",
+        needTutoring: true,
+        needTextbooks: false,
+      });
+      window.setTimeout(() => setFormSaved(false), 5000);
+      const el = document.getElementById("browse-profiles");
+      el?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch {
+      setFormError("Could not save your profile. Is the server running?");
+    }
   };
 
   const startEditProfile = useCallback(
@@ -369,10 +387,15 @@ const Funding = () => {
     [scrollToSection]
   );
 
-  const removeProfile = useCallback((id) => {
-    setProfiles((prev) => prev.filter((p) => p.id !== id));
-    if (editingProfileId === id) {
-      setEditingProfileId(null);
+  const removeProfile = useCallback(async (id) => {
+    try {
+      await deleteProfile(id);
+      setProfiles((prev) => prev.filter((p) => p.id !== id));
+      if (editingProfileId === id) {
+        setEditingProfileId(null);
+      }
+    } catch {
+      // silently ignore — the UI hasn't changed so the user can retry
     }
   }, [editingProfileId]);
 
@@ -504,9 +527,8 @@ const Funding = () => {
             </div>
             <h2 className="mt-2 text-3xl font-bold text-slate-900">Create your funding profile</h2>
             <p className="mt-2 text-slate-600">
-              This profile is stored on this device for demo purposes and listed below for
-              funders to view. For production, profiles would live in a secure account you
-              control.
+              Fill in the form below to publish your profile so funders can discover you
+              and reach out via Intellectus.
             </p>
             <p className="mt-2 text-sm text-slate-500">
               High school and university students can both apply for funding support.
@@ -847,12 +869,20 @@ const Funding = () => {
               />
             </div>
 
-            {profiles.length === 0 ? (
+            {profilesLoading ? (
+              <div className="mt-10 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center text-slate-500">
+                <p className="font-medium text-slate-700">Loading profiles…</p>
+              </div>
+            ) : profilesError ? (
+              <div className="mt-10 rounded-2xl border border-dashed border-rose-200 bg-rose-50 p-12 text-center text-rose-700">
+                <p className="font-medium">{profilesError}</p>
+              </div>
+            ) : profiles.length === 0 ? (
               <div className="mt-10 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center text-slate-500">
                 <p className="font-medium text-slate-700">No profiles yet</p>
                 <p className="mt-2 text-sm">
-                  Students can publish a profile using the form above. Profiles you add on
-                  this device appear here.
+                  Students can publish a profile using the form above. Profiles appear here
+                  for all visitors once saved.
                 </p>
               </div>
             ) : (
