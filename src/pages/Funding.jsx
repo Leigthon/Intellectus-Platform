@@ -23,30 +23,123 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CONTACT_EMAIL } from "@/pages/Marketplace";
+import { supabase } from "@/lib/supabase";
 
-const API_BASE = "/api/profiles";
+const LS_KEY = "intellectus_profiles";
 const MAX_IMAGE_SIZE_BYTES = 1024 * 1024 * 2;
 const MAX_TRANSCRIPT_SIZE_BYTES = 1024 * 1024 * 3;
 
+// ---------------------------------------------------------------------------
+// localStorage helpers (fallback when Supabase is unavailable)
+// ---------------------------------------------------------------------------
+function lsGetProfiles() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function lsSaveProfile(profile) {
+  const profiles = lsGetProfiles();
+  const idx = profiles.findIndex((p) => p.id === profile.id);
+  if (idx > -1) {
+    profiles[idx] = profile;
+  } else {
+    profiles.unshift(profile);
+  }
+  localStorage.setItem(LS_KEY, JSON.stringify(profiles));
+  return profile;
+}
+
+function lsDeleteProfile(id) {
+  const profiles = lsGetProfiles().filter((p) => p.id !== id);
+  localStorage.setItem(LS_KEY, JSON.stringify(profiles));
+}
+
+// ---------------------------------------------------------------------------
+// Data access — Supabase with localStorage fallback
+// ---------------------------------------------------------------------------
 async function fetchProfiles() {
-  const res = await fetch(API_BASE);
-  if (!res.ok) throw new Error("Failed to load profiles");
-  return res.json();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    // Map snake_case DB columns back to camelCase used in the UI
+    return (data || []).map(dbRowToProfile);
+  }
+  return lsGetProfiles();
 }
 
 async function saveProfile(profile) {
-  const res = await fetch(API_BASE, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(profile),
-  });
-  if (!res.ok) throw new Error("Failed to save profile");
-  return res.json();
+  if (supabase) {
+    const row = profileToDbRow(profile);
+    const { error } = await supabase.from("profiles").upsert(row);
+    if (error) throw new Error(error.message);
+    return profile;
+  }
+  return lsSaveProfile(profile);
 }
 
 async function deleteProfile(id) {
-  const res = await fetch(`${API_BASE}/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Failed to delete profile");
+  if (supabase) {
+    const { error } = await supabase.from("profiles").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+    return;
+  }
+  lsDeleteProfile(id);
+}
+
+// ---------------------------------------------------------------------------
+// Column mapping between JS camelCase and Supabase snake_case
+// ---------------------------------------------------------------------------
+function profileToDbRow(p) {
+  return {
+    id: p.id,
+    student_type: p.studentType,
+    display_name: p.displayName,
+    student_email: p.studentEmail,
+    age: p.age ?? null,
+    study_level: p.studyLevel,
+    high_school_grade: p.highSchoolGrade,
+    institution_name: p.institutionName,
+    field_of_study: p.fieldOfStudy,
+    city: p.city,
+    bio: p.bio,
+    profile_image_data_url: p.profileImageDataUrl,
+    transcript_data_url: p.transcriptDataUrl,
+    transcript_name: p.transcriptName,
+    needs: p.needs,
+    created_at: p.createdAt,
+    updated_at: p.updatedAt,
+  };
+}
+
+function dbRowToProfile(row) {
+  return {
+    id: row.id,
+    studentType: row.student_type,
+    displayName: row.display_name,
+    studentEmail: row.student_email,
+    age: row.age,
+    studyLevel: row.study_level,
+    highSchoolGrade: row.high_school_grade,
+    institutionName: row.institution_name,
+    fieldOfStudy: row.field_of_study,
+    city: row.city,
+    bio: row.bio,
+    profileImageDataUrl: row.profile_image_data_url,
+    transcriptDataUrl: row.transcript_data_url,
+    transcriptName: row.transcript_name,
+    needs: row.needs,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 function newProfileId() {
@@ -354,7 +447,7 @@ const Funding = () => {
       const el = document.getElementById("browse-profiles");
       el?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch {
-      setFormError("Could not save your profile. Is the server running?");
+      setFormError("Could not save your profile. Please try again.");
     }
   };
 
