@@ -104,7 +104,7 @@ function profileToDbRow(p) {
     student_type: p.studentType,
     display_name: p.displayName,
     student_email: p.studentEmail,
-    age: p.age ?? null,
+    age: p.age,
     study_level: p.studyLevel,
     high_school_grade: p.highSchoolGrade,
     institution_name: p.institutionName,
