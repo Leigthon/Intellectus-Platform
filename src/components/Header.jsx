@@ -14,7 +14,6 @@ const Header = () => {
 
   const navLinks = [
     { name: "Home",path: "/home"},
-    { name: "Tutoring", path: "https://my.intellectusacademy.tech/" },
     { name: "Funding", path: "/funding" },
     { name: "Marketplace", path: "/marketplace" },
   ];
