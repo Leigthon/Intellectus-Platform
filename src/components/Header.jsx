@@ -12,8 +12,8 @@ const Header = () => {
   const location = useLocation();
 
   const navLinks = [
-    { name: "Home",path: "/home"},
-    { name: "Tutoring", path: "https://my.intellectusacademy.tech/" },
+    // { name: "Home",path: "/home"},
+    { name: "Tutoring", path: "https://leigthon.github.io/Intellectus-Tutoring/" },
     { name: "Funding", path: "/funding" },
     { name: "Marketplace", path: "/marketplace" },
   ];
@@ -193,42 +193,71 @@ const Header = () => {
     return effectivePath === path || effectivePath.startsWith(path + "/");
   };
 
+  const isMainHomeRoute =
+    normalizedEffectivePath === "/" || normalizedEffectivePath === "/home";
+
+  const scrollToTopOfPage = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setIsMenuOpen(false);
+  };
+
+  const mainNavLinkClass = (active) =>
+    `text-sm font-medium transition-colors relative ${
+      active ? `text-gray-900 ${config.hoverTextClass}` : `text-gray-700 ${config.hoverTextClass}`
+    }`;
+
+  const mainNavItemClass = (active) =>
+    `block rounded-xl px-4 py-3 text-[15px] transition-colors ${
+      active ? mobileMenu.linkActive : mobileMenu.linkIdle
+    }`;
+
   return (
     
 
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-14 sm:h-16 gap-2 min-w-0">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 flex-1">
+          {/* Logo — scrolls to top of the current page (does not navigate away) */}
+          <button
+            type="button"
+            onClick={scrollToTopOfPage}
+            className="group flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-lg border-0 bg-transparent p-0 text-left sm:gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2"
+            aria-label="Scroll to top of this page"
+          >
             <img
               src={config.logo}
-              alt={`${config.title || "Intellectus"} logo`}
-              className="h-9 w-9 sm:h-12 sm:w-auto shrink-0 rounded-full object-cover"
+              alt=""
+              className="h-9 w-9 shrink-0 rounded-full object-cover sm:h-12 sm:w-auto"
             />
-            <div className="flex flex-col leading-tight min-w-0">
-              <span className="text-base sm:text-[20px] chunkfive-font text-gray-600 flex items-center gap-1 sm:gap-2 truncate">
-                <span className="truncate">{config.title || "Intellectus"}<span className="text-[5px] chunkfive-font text-gray-500 shrink-0">©</span></span>
-                
-                {/* {process.env.NODE_ENV !== "production" && (
-                  <span className="ml-2 px-2 py-1 text-xs text-[#1ac8db] bg-[#e6f7fa] rounded-md border border-[#d0f0f4]">
-                    {matchedKey || effectivePath}
-                  </span>
-                )} */}
+            <div className="min-w-0 flex flex-col leading-tight">
+              <span className="chunkfive-font flex items-center gap-1 truncate text-base text-gray-600 sm:gap-2 sm:text-[20px]">
+                <span className="truncate">
+                  {config.title || "Intellectus"}
+                  <span className="chunkfive-font shrink-0 text-[5px] text-gray-500">©</span>
+                </span>
               </span>
-             
               <span
-                className={`text-[8px] sm:text-[9px] font-normal truncate ${subtitleClass}`}
+                className={`truncate text-[8px] font-normal sm:text-[9px] ${subtitleClass}`}
                 style={subtitleColor ? { color: subtitleColor } : undefined}
               >
                 {config.subtitle || ""}
               </span>
             </div>
-          </Link>
-          
+          </button>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden shrink-0 items-center gap-5 md:flex lg:gap-7">
+            <Link
+              to="/"
+              className={`relative ${mainNavLinkClass(isMainHomeRoute)}`}
+            >
+              Intellectus Main
+              {isMainHomeRoute && (
+                <span
+                  className={`absolute -bottom-[21px] left-0 right-0 h-0.5 ${config.underlineClass}`}
+                />
+              )}
+            </Link>
             {navLinks.map((link) => (
               link.path && link.path.startsWith("http") ? (
                 <a
@@ -278,6 +307,13 @@ const Header = () => {
           className={`md:hidden max-h-[min(70vh,calc(100dvh-3.5rem))] overflow-y-auto overscroll-contain backdrop-blur-sm ${mobileMenu.panel}`}
         >
           <nav className="space-y-1 px-3 py-3 sm:px-4 sm:py-4">
+            <Link
+              to="/"
+              onClick={() => setIsMenuOpen(false)}
+              className={mainNavItemClass(isMainHomeRoute)}
+            >
+              Intellectus Main
+            </Link>
             {navLinks.map((link) => {
               const active = isActive(link.path);
               const itemClass = `block rounded-xl px-4 py-3 text-[15px] transition-colors ${

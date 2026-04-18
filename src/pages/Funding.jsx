@@ -3,13 +3,16 @@ import { Link } from "react-router-dom";
 import {
   ArrowRight,
   BookOpen,
+  Cake,
   Camera,
   CheckCircle2,
   Mail,
   FileText,
   GraduationCap,
   HeartHandshake,
+  MapPin,
   Pencil,
+  School,
   Search,
   Sparkles,
   Trash2,
@@ -54,6 +57,11 @@ function parseOptionalAge(value) {
 }
 
 function profileMatchesFunderSearch(profile, filters) {
+  const nameQ = filters.name.trim().toLowerCase();
+  if (nameQ && !(profile.displayName || "").toLowerCase().includes(nameQ)) {
+    return false;
+  }
+
   const ageQ = parseOptionalAge(filters.age);
   if (ageQ != null) {
     const profileAge =
@@ -140,6 +148,7 @@ const Funding = () => {
   const [editingProfileId, setEditingProfileId] = useState(null);
   const [manageEmail, setManageEmail] = useState("");
   const [funderSearch, setFunderSearch] = useState({
+    name: "",
     age: "",
     subject: "",
     school: "",
@@ -208,6 +217,7 @@ const Funding = () => {
 
   const hasActiveFunderSearch = useMemo(
     () =>
+      funderSearch.name.trim() !== "" ||
       funderSearch.age.trim() !== "" ||
       funderSearch.subject.trim() !== "" ||
       funderSearch.school.trim() !== "" ||
@@ -847,102 +857,158 @@ const Funding = () => {
               </div>
             ) : (
               <>
-                <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50/60 p-4 sm:p-5">
-                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-2 text-amber-900">
-                      <Search className="h-5 w-5 shrink-0" aria-hidden />
-                      <span className="text-sm font-bold">Search students</span>
+                <div className="mt-8 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-xl shadow-slate-200/50 ring-1 ring-slate-100">
+                  <div className="relative border-b border-slate-100 bg-gradient-to-br from-rose-50 via-white to-amber-50/40 px-5 py-5 sm:px-7 sm:py-6">
+                    <div className="pointer-events-none absolute -right-16 -top-20 h-40 w-40 rounded-full bg-rose-200/30 blur-3xl" />
+                    <div className="pointer-events-none absolute -bottom-24 -left-12 h-36 w-36 rounded-full bg-amber-200/25 blur-3xl" />
+                    <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex items-start gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-rose-600 text-white shadow-lg shadow-rose-500/30">
+                          <Search className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+                        </div>
+                        <div className="min-w-0 pt-0.5">
+                          <h3 className="text-lg font-bold tracking-tight text-slate-900 sm:text-xl">
+                            Find students
+                          </h3>
+                          <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
+                            Search by display name, or narrow by age, subject, school, or place.
+                            Only profiles that match every field you fill in are shown.
+                          </p>
+                        </div>
+                      </div>
+                      {hasActiveFunderSearch && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFunderSearch({
+                              name: "",
+                              age: "",
+                              subject: "",
+                              school: "",
+                              location: "",
+                            })
+                          }
+                          className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-900"
+                        >
+                          Clear all filters
+                        </button>
+                      )}
                     </div>
-                    {hasActiveFunderSearch && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setFunderSearch({
-                            age: "",
-                            subject: "",
-                            school: "",
-                            location: "",
-                          })
-                        }
-                        className="self-start text-sm font-semibold text-rose-700 underline-offset-4 hover:underline"
-                      >
-                        Clear filters
-                      </button>
-                    )}
                   </div>
-                  <p className="mt-1 text-xs text-slate-600 sm:text-sm">
-                    Filter by age (exact), subject or course focus, school, or location. All
-                    filled fields must match.
-                  </p>
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700" htmlFor="filter-age">
-                        Age
-                      </label>
-                      <input
-                        id="filter-age"
-                        type="number"
-                        inputMode="numeric"
-                        min={10}
-                        max={99}
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                        value={funderSearch.age}
-                        onChange={(e) =>
-                          setFunderSearch((s) => ({ ...s, age: e.target.value }))
-                        }
-                        placeholder="e.g. 17"
-                      />
-                    </div>
-                    <div>
+                  <div className="bg-slate-50/40 px-5 py-5 sm:px-7 sm:py-6">
+                    <div className="mb-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-rose-200/60 hover:shadow-md sm:p-5">
                       <label
-                        className="text-xs font-semibold text-slate-700"
-                        htmlFor="filter-subject"
+                        className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500"
+                        htmlFor="filter-name"
                       >
-                        Subject / focus
+                        <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                          <UserRound className="h-3.5 w-3.5" aria-hidden />
+                        </span>
+                        Display name
                       </label>
                       <input
-                        id="filter-subject"
+                        id="filter-name"
                         type="search"
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                        value={funderSearch.subject}
+                        className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-200"
+                        value={funderSearch.name}
                         onChange={(e) =>
-                          setFunderSearch((s) => ({ ...s, subject: e.target.value }))
+                          setFunderSearch((s) => ({ ...s, name: e.target.value }))
                         }
-                        placeholder="e.g. Maths, engineering"
+                        placeholder="First name, initials, or any part of their public name"
+                        autoComplete="off"
                       />
                     </div>
-                    <div>
-                      <label className="text-xs font-semibold text-slate-700" htmlFor="filter-school">
-                        School / institution
-                      </label>
-                      <input
-                        id="filter-school"
-                        type="search"
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                        value={funderSearch.school}
-                        onChange={(e) =>
-                          setFunderSearch((s) => ({ ...s, school: e.target.value }))
-                        }
-                        placeholder="Part of the name"
-                      />
-                    </div>
-                    <div>
-                      <label
-                        className="text-xs font-semibold text-slate-700"
-                        htmlFor="filter-location"
-                      >
-                        Location
-                      </label>
-                      <input
-                        id="filter-location"
-                        type="search"
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                        value={funderSearch.location}
-                        onChange={(e) =>
-                          setFunderSearch((s) => ({ ...s, location: e.target.value }))
-                        }
-                        placeholder="City or region"
-                      />
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      <div className="group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-rose-200/60 hover:shadow-md">
+                        <label
+                          className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500"
+                          htmlFor="filter-age"
+                        >
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                            <Cake className="h-3.5 w-3.5" aria-hidden />
+                          </span>
+                          Age
+                        </label>
+                        <input
+                          id="filter-age"
+                          type="number"
+                          inputMode="numeric"
+                          min={10}
+                          max={99}
+                          className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-200"
+                          value={funderSearch.age}
+                          onChange={(e) =>
+                            setFunderSearch((s) => ({ ...s, age: e.target.value }))
+                          }
+                          placeholder="Exact age, e.g. 17"
+                        />
+                        <p className="mt-2 text-[11px] leading-snug text-slate-500">
+                          Only matches students who saved an age.
+                        </p>
+                      </div>
+                      <div className="group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-rose-200/60 hover:shadow-md">
+                        <label
+                          className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500"
+                          htmlFor="filter-subject"
+                        >
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                            <GraduationCap className="h-3.5 w-3.5" aria-hidden />
+                          </span>
+                          Subject / focus
+                        </label>
+                        <input
+                          id="filter-subject"
+                          type="search"
+                          className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-200"
+                          value={funderSearch.subject}
+                          onChange={(e) =>
+                            setFunderSearch((s) => ({ ...s, subject: e.target.value }))
+                          }
+                          placeholder="Maths, engineering…"
+                        />
+                      </div>
+                      <div className="group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-rose-200/60 hover:shadow-md">
+                        <label
+                          className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500"
+                          htmlFor="filter-school"
+                        >
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                            <School className="h-3.5 w-3.5" aria-hidden />
+                          </span>
+                          School
+                        </label>
+                        <input
+                          id="filter-school"
+                          type="search"
+                          className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-200"
+                          value={funderSearch.school}
+                          onChange={(e) =>
+                            setFunderSearch((s) => ({ ...s, school: e.target.value }))
+                          }
+                          placeholder="Part of institution name"
+                        />
+                      </div>
+                      <div className="group rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm transition hover:border-rose-200/60 hover:shadow-md">
+                        <label
+                          className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-slate-500"
+                          htmlFor="filter-location"
+                        >
+                          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600">
+                            <MapPin className="h-3.5 w-3.5" aria-hidden />
+                          </span>
+                          Location
+                        </label>
+                        <input
+                          id="filter-location"
+                          type="search"
+                          className="mt-3 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-200"
+                          value={funderSearch.location}
+                          onChange={(e) =>
+                            setFunderSearch((s) => ({ ...s, location: e.target.value }))
+                          }
+                          placeholder="City or region"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -951,8 +1017,8 @@ const Funding = () => {
                   <div className="mt-10 rounded-2xl border border-dashed border-amber-200 bg-white p-10 text-center text-slate-600">
                     <p className="font-medium text-slate-800">No profiles match your search</p>
                     <p className="mt-2 text-sm text-slate-500">
-                      Try different keywords, or clear filters to see everyone again. Age
-                      matches only students who listed their age on their profile.
+                      Try a different display name or other keywords, or clear filters to see
+                      everyone again. Age matches only when the student listed their age.
                     </p>
                   </div>
                 ) : (
