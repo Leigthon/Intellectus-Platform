@@ -8,3 +8,6 @@ dist/
 .env
 .env.local
 .env.*.local
+
+# Profile data (local only)
+profiles.json
