@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 
 export default defineConfig({
-  base: "/", // Must match repo name exactly with slashes
+  base: "/Intellectus-Platform/",
   plugins: [react()],
   resolve: {
     alias: {
