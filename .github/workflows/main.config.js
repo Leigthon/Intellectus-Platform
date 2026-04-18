@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 
 export default defineConfig({
-  base: "Leigthon/Intellectus-Academy",
+  base: "Leigthon/Intellectus-Platform",
   plugins: [react()],
   resolve: {
     alias: {
