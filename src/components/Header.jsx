@@ -264,7 +264,6 @@ const Header = () => {
                   key={link.name + link.path}
                   href={link.path}
                   className={`text-sm font-medium transition-colors relative ${isActive(link.path) ? `text-gray-900 ${config.hoverTextClass}` : `text-gray-700 ${config.hoverTextClass}`}`}
-                  target="_blank"
                   rel="noopener noreferrer"
                 >
                   {link.name}
@@ -325,7 +324,6 @@ const Header = () => {
                   href={link.path}
                   onClick={() => setIsMenuOpen(false)}
                   className={itemClass}
-                  target="_blank"
                   rel="noopener noreferrer"
                 >
                   {link.name}
