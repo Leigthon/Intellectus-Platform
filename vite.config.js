@@ -60,8 +60,7 @@ function profilesApiPlugin() {
         }
 
         if (req.method === "DELETE") {
-          // req.url is relative to the /api/profiles prefix (e.g. "/p-123")
-          const id = decodeURIComponent(req.url.replace(/^\/+/, ""));
+          const id = decodeURIComponent(req.url.replace(/^\/+/,""));
           if (!id) {
             res.statusCode = 400;
             res.end(JSON.stringify({ error: "Missing profile id." }));
@@ -88,12 +87,4 @@ export default defineConfig({
       "@": path.resolve(process.cwd(), "src"),
     },
   },
-<<<<<<< HEAD
-=======
-  server: {
-    proxy: {
-      "/api": "http://localhost:5003",
-    },
-  },
->>>>>>> 9b180e8 (few final updated)
 });
