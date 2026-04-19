@@ -88,4 +88,12 @@ export default defineConfig({
       "@": path.resolve(process.cwd(), "src"),
     },
   },
+<<<<<<< HEAD
+=======
+  server: {
+    proxy: {
+      "/api": "http://localhost:5003",
+    },
+  },
+>>>>>>> 9b180e8 (few final updated)
 });

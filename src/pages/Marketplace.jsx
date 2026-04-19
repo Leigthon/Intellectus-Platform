@@ -350,7 +350,7 @@ const MarketplacePage = () => {
               style={{
                 marginTop: "clamp(3.5rem, 12vw, 5rem)",
                 marginBottom: "clamp(1.25rem, 4vw, 3rem)",
-                marginLeft: 0,
+                marginLeft: "0",
                 fontSize: "clamp(1.5rem, 5.5vw, 2.5rem)",
                 lineHeight: 1.15,
                 fontWeight: 900,
@@ -836,6 +836,10 @@ const MarketplacePage = () => {
         </div>
       </section>
 
+
+     
+
+
       <section
         id="how-it-works"
         style={{
@@ -844,6 +848,98 @@ const MarketplacePage = () => {
           color: "#e5e7eb",
         }}
       >
+         <style>{`
+        @keyframes bounce {
+          0%, 100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-12px);
+          }
+        }
+        .bounce-section {
+          animation: bounce 3s ease-in-out infinite;
+        }
+      `}</style>
+      <section
+        
+      >
+        <div
+          className="bounce-section"
+          style={{
+            maxWidth: "960px",
+            margin: "0 auto",
+            marginBottom:"2rem",
+            borderRadius: "24px",
+            padding: "28px 24px 30px",
+            background: "linear-gradient(135deg, #13301dff, #519e35ff)",
+            boxShadow: "0 24px 60px rgba(15, 42, 33, 0.6)",
+            textAlign: "center",
+            color: "#f9fafb",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "26px",
+              fontWeight: 900,
+            }}
+          >
+            Ready to join the student textbook marketplace?
+          </h2>
+          <p
+            style={{
+              marginTop: "10px",
+              fontSize: "15px",
+              color: "#e5e7eb",
+            }}
+          >
+            Save money on your next semester or turn your old textbooks into
+            extra income — all in one trusted platform.
+          </p>
+          <div
+            style={{
+              marginTop: "22px",
+              display: "flex",
+              justifyContent: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            <button
+              type="button"
+              onClick={scrollToBrowse}
+              style={{
+                padding: "11px 22px",
+                borderRadius: "999px",
+                backgroundColor: "#ffffff",
+                color: "#050812ff",
+                fontSize: "14px",
+                fontWeight: 700,
+                textDecoration: "none",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              Start buying
+            </button>
+            <a
+              href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("List a textbook on Intellectus Marketplace")}`}
+              style={{
+                padding: "11px 22px",
+                borderRadius: "999px",
+                border: "1px solid rgba(191,219,254,0.9)",
+                color: "#f9fafb",
+                fontSize: "14px",
+                fontWeight: 700,
+                textDecoration: "none",
+                backgroundColor: "rgba(15,23,42,0.15)",
+              }}
+            >
+              Start selling
+            </a>
+          </div>
+        </div>
+      </section>
         <div
           style={{
             maxWidth: "1120px",
@@ -999,87 +1095,6 @@ const MarketplacePage = () => {
             >
               — David, Corporate Sponsor
             </p>
-          </div>
-        </div>
-      </section>
-
-      <section
-        style={{
-          padding: "56px 16px 72px",
-          background: "#f9fafb",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: "960px",
-            margin: "0 auto",
-            borderRadius: "24px",
-            padding: "28px 24px 30px",
-            background: "linear-gradient(135deg, #13301dff, #519e35ff)",
-            boxShadow: "0 24px 60px rgba(15, 42, 33, 0.6)",
-            textAlign: "center",
-            color: "#f9fafb",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "26px",
-              fontWeight: 900,
-            }}
-          >
-            Ready to join the student textbook marketplace?
-          </h2>
-          <p
-            style={{
-              marginTop: "10px",
-              fontSize: "15px",
-              color: "#e5e7eb",
-            }}
-          >
-            Save money on your next semester or turn your old textbooks into
-            extra income — all in one trusted platform.
-          </p>
-          <div
-            style={{
-              marginTop: "22px",
-              display: "flex",
-              justifyContent: "center",
-              gap: "12px",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              type="button"
-              onClick={scrollToBrowse}
-              style={{
-                padding: "11px 22px",
-                borderRadius: "999px",
-                backgroundColor: "#ffffff",
-                color: "#050812ff",
-                fontSize: "14px",
-                fontWeight: 700,
-                textDecoration: "none",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Start buying
-            </button>
-            <a
-              href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("List a textbook on Intellectus Marketplace")}`}
-              style={{
-                padding: "11px 22px",
-                borderRadius: "999px",
-                border: "1px solid rgba(191,219,254,0.9)",
-                color: "#f9fafb",
-                fontSize: "14px",
-                fontWeight: 700,
-                textDecoration: "none",
-                backgroundColor: "rgba(15,23,42,0.15)",
-              }}
-            >
-              Start selling
-            </a>
           </div>
         </div>
       </section>

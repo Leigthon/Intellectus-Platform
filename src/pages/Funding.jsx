@@ -196,7 +196,6 @@ function readFileAsDataUrl(file) {
 }
 
 const STUDY_LEVELS = [
-  "High school",
   "1st year university",
   "2nd year university",
   "3rd year university",
@@ -238,6 +237,32 @@ const fundingMailto = (profile, supportLabel) => {
   return `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
 };
 
+/** Always shown first in the directory (not stored in the API). */
+const PINNED_FUNDING_PROFILE_ID = "intellectus-pinned-leighon";
+const PINNED_STUDENT_EMAIL = "leigthonmessin2@gmail.com";
+
+const PINNED_FUNDING_PROFILE = {
+  id: PINNED_FUNDING_PROFILE_ID,
+  isPinned: true,
+  displayName: "Leighon",
+  studentEmail: PINNED_STUDENT_EMAIL,
+  studentType: "tertiary",
+  studyLevel: "2nd year university",
+  highSchoolGrade: "",
+  institutionName: "University of Cape Town",
+  fieldOfStudy: "Computer Science & Mathematics",
+  city: "Cape Town",
+  age: 20,
+  bio:
+    "I’m working toward stronger results in core STEM modules and need reliable tutoring plus a few key textbooks this term. Funding would help me stay on track with assignments and exam prep without stretching my family’s budget.",
+  profileImageDataUrl: "",
+  transcriptDataUrl: "",
+  transcriptName: "",
+  needs: ["Tutoring sessions", "Textbooks"],
+  createdAt: "2024-06-01T00:00:00.000Z",
+  updatedAt: "2024-06-01T00:00:00.000Z",
+};
+
 const Funding = () => {
   const [profiles, setProfiles] = useState([]);
   const [profilesLoading, setProfilesLoading] = useState(true);
@@ -246,6 +271,7 @@ const Funding = () => {
   const [formError, setFormError] = useState("");
   const [editingProfileId, setEditingProfileId] = useState(null);
   const [manageEmail, setManageEmail] = useState("");
+  const [managePassword, setManagePassword] = useState("");
   const [funderSearch, setFunderSearch] = useState({
     name: "",
     age: "",
@@ -258,6 +284,7 @@ const Funding = () => {
     studentType: "highschool",
     displayName: "",
     studentEmail: "",
+    studentPassword: "",
     age: "",
     studyLevel: STUDY_LEVELS[1],
     highSchoolGrade: HIGH_SCHOOL_GRADES[0],
@@ -307,6 +334,7 @@ const Funding = () => {
     return (
       form.displayName.trim().length >= 2 &&
       EMAIL_REGEX.test(email) &&
+      form.studentPassword.trim().length >= 4 &&
       form.institutionName.trim().length >= 2 &&
       form.fieldOfStudy.trim().length >= 2 &&
       form.city.trim().length >= 2 &&
@@ -316,10 +344,28 @@ const Funding = () => {
     );
   }, [form, needsList.length, ageFieldInvalid]);
 
-  const filteredProfiles = useMemo(
-    () => profiles.filter((p) => profileMatchesFunderSearch(p, funderSearch)),
+  /** API rows only, excluding duplicate of the pinned profile. */
+  const filteredApiProfiles = useMemo(
+    () =>
+      profiles
+        .filter(
+          (p) =>
+            p.id !== PINNED_FUNDING_PROFILE_ID &&
+            (p.studentEmail || "").toLowerCase() !== PINNED_STUDENT_EMAIL.toLowerCase()
+        )
+        .filter((p) => profileMatchesFunderSearch(p, funderSearch)),
     [profiles, funderSearch]
   );
+
+  /** Pinned Leighon card is always first; other rows respect search filters. */
+  const displayProfiles = useMemo(() => {
+    const pinnedVisible = profileMatchesFunderSearch(
+      PINNED_FUNDING_PROFILE,
+      funderSearch
+    );
+    if (!pinnedVisible) return filteredApiProfiles;
+    return [PINNED_FUNDING_PROFILE, ...filteredApiProfiles];
+  }, [filteredApiProfiles, funderSearch]);
 
   const hasActiveFunderSearch = useMemo(
     () =>
@@ -387,9 +433,16 @@ const Funding = () => {
     e.preventDefault();
     if (!canSubmitProfile) return;
     const normalizedEmail = form.studentEmail.trim().toLowerCase();
-    const existingByEmail = profiles.some(
-      (p) => p.studentEmail === normalizedEmail && p.id !== editingProfileId
-    );
+    const profileOwningEmail = profiles.find((p) => p.studentEmail === normalizedEmail);
+    const pinnedEmailLower = PINNED_STUDENT_EMAIL.toLowerCase();
+    const existingByEmail =
+      profiles.some(
+        (p) => p.studentEmail === normalizedEmail && p.id !== editingProfileId
+      ) ||
+      (normalizedEmail === pinnedEmailLower &&
+        (!editingProfileId ||
+          !profileOwningEmail ||
+          profileOwningEmail.id !== editingProfileId));
     if (existingByEmail) {
       setFormError(
         "A profile with this email already exists. Use that email below the cards to edit or remove it."
@@ -401,6 +454,7 @@ const Funding = () => {
       studentType: form.studentType,
       displayName: form.displayName.trim(),
       studentEmail: normalizedEmail,
+      studentPassword: form.studentPassword,
       age: parseOptionalAge(form.age),
       studyLevel: form.studyLevel,
       highSchoolGrade: form.studentType === "highschool" ? form.highSchoolGrade : "",
@@ -430,6 +484,7 @@ const Funding = () => {
         studentType: "highschool",
         displayName: "",
         studentEmail: "",
+        studentPassword: "",
         age: "",
         studyLevel: STUDY_LEVELS[1],
         highSchoolGrade: HIGH_SCHOOL_GRADES[0],
@@ -453,12 +508,14 @@ const Funding = () => {
 
   const startEditProfile = useCallback(
     (profile) => {
+      if (profile.isPinned || profile.id === PINNED_FUNDING_PROFILE_ID) return;
       setEditingProfileId(profile.id);
       setFormError("");
       setForm({
         studentType: profile.studentType || "tertiary",
         displayName: profile.displayName || "",
         studentEmail: profile.studentEmail || "",
+        studentPassword: profile.studentPassword || "",
         age:
           typeof profile.age === "number" && Number.isFinite(profile.age)
             ? String(profile.age)
@@ -612,7 +669,7 @@ const Funding = () => {
         </section>
 
         {/* Student profile form */}
-        <section id="student-profile" className="scroll-mt-24 px-4 py-16 sm:px-6 lg:px-8">
+        <section id="student-profile" className="scroll-mt-24 bg-gradient-to-br from-rose-50 via-red-50 to-pink-50 px-4 py-16 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl">
             <div className="flex items-center gap-2 text-rose-700">
               <Sparkles className="h-5 w-5" aria-hidden />
@@ -717,7 +774,7 @@ const Funding = () => {
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-800" htmlFor="fn">
-                      Display name
+                      Display name <span className="text-rose-600">*</span>
                     </label>
                     <input
                       id="fn"
@@ -726,11 +783,12 @@ const Funding = () => {
                       onChange={onChange("displayName")}
                       placeholder="e.g. Alex M."
                       autoComplete="name"
+                      required
                     />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-800" htmlFor="student-email">
-                      Student email (used to edit/remove your profile)
+                      Student email <span className="text-rose-600">*</span> (used to edit/remove your profile)
                     </label>
                     <input
                       id="student-email"
@@ -740,6 +798,22 @@ const Funding = () => {
                       onChange={onChange("studentEmail")}
                       placeholder="e.g. learner@email.com"
                       autoComplete="email"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-800" htmlFor="student-password">
+                      Student password <span className="text-rose-600">*</span> (at least 4 characters)
+                    </label>
+                    <input
+                      id="student-password"
+                      type="password"
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                      value={form.studentPassword}
+                      onChange={onChange("studentPassword")}
+                      placeholder="Create a secure password"
+                      autoComplete={editingProfileId ? "current-password" : "new-password"}
+                      required
                     />
                   </div>
                   <div>
@@ -764,23 +838,25 @@ const Funding = () => {
                     )}
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div>
-                      <label className="text-sm font-semibold text-slate-800" htmlFor="lvl">
-                        Study level
-                      </label>
-                      <select
-                        id="lvl"
-                        className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                        value={form.studyLevel}
-                        onChange={onChange("studyLevel")}
-                      >
-                        {STUDY_LEVELS.map((l) => (
-                          <option key={l} value={l}>
-                            {l}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                    {form.studentType === "tertiary" && (
+                      <div>
+                        <label className="text-sm font-semibold text-slate-800" htmlFor="lvl">
+                          Study level
+                        </label>
+                        <select
+                          id="lvl"
+                          className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                          value={form.studyLevel}
+                          onChange={onChange("studyLevel")}
+                        >
+                          {STUDY_LEVELS.map((l) => (
+                            <option key={l} value={l}>
+                              {l}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                     {form.studentType === "highschool" && (
                       <div>
                         <label className="text-sm font-semibold text-slate-800" htmlFor="grade">
@@ -800,30 +876,31 @@ const Funding = () => {
                         </select>
                       </div>
                     )}
-                    <div>
-                      <label className="text-sm font-semibold text-slate-800" htmlFor="field">
-                        {form.studentType === "highschool"
-                          ? "Main subjects / goals"
-                          : "Field / course focus"}
-                      </label>
-                      <input
-                        id="field"
-                        className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                        value={form.fieldOfStudy}
-                        onChange={onChange("fieldOfStudy")}
-                        placeholder={
-                          form.studentType === "highschool"
-                            ? "e.g. Maths, Physical Sciences, English"
-                            : "e.g. Mechanical engineering"
-                        }
-                      />
-                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-slate-800" htmlFor="field">
+                      {form.studentType === "highschool"
+                        ? "Main subjects / goals"
+                        : "Field / course focus"} <span className="text-rose-600">*</span>
+                    </label>
+                    <input
+                      id="field"
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                      value={form.fieldOfStudy}
+                      onChange={onChange("fieldOfStudy")}
+                      placeholder={
+                        form.studentType === "highschool"
+                          ? "e.g. Maths, Physical Sciences, English"
+                          : "e.g. Mechanical engineering"
+                      }
+                      required
+                    />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-800" htmlFor="institution">
                       {form.studentType === "highschool"
                         ? "School name"
-                        : "University / college name"}
+                        : "University / college name"} <span className="text-rose-600">*</span>
                     </label>
                     <input
                       id="institution"
@@ -835,11 +912,12 @@ const Funding = () => {
                           ? "e.g. Cape Town High School"
                           : "e.g. University of Cape Town"
                       }
+                      required
                     />
                   </div>
                   <div>
                     <label className="text-sm font-semibold text-slate-800" htmlFor="city">
-                      City or region
+                      City or region <span className="text-rose-600">*</span>
                     </label>
                     <input
                       id="city"
@@ -847,6 +925,7 @@ const Funding = () => {
                       value={form.city}
                       onChange={onChange("city")}
                       placeholder="e.g. Cape Town"
+                      required
                     />
                   </div>
                   <fieldset>
@@ -876,7 +955,7 @@ const Funding = () => {
                   </fieldset>
                   <div>
                     <label className="text-sm font-semibold text-slate-800" htmlFor="bio">
-                      Goals & context (at least 40 characters)
+                      Goals & context <span className="text-rose-600">*</span> (at least 40 characters)
                     </label>
                     <textarea
                       id="bio"
@@ -885,6 +964,7 @@ const Funding = () => {
                       value={form.bio}
                       onChange={onChange("bio")}
                       placeholder="Share what you are studying, what you are trying to achieve this term, and how funding would help—without sharing passwords or banking details."
+                      required
                     />
                     <p className="mt-1 text-xs text-slate-500">{form.bio.trim().length}/40 min</p>
                   </div>
@@ -907,6 +987,7 @@ const Funding = () => {
                           studentType: "highschool",
                           displayName: "",
                           studentEmail: "",
+                          studentPassword: "",
                           age: "",
                           studyLevel: STUDY_LEVELS[1],
                           highSchoolGrade: HIGH_SCHOOL_GRADES[0],
@@ -931,11 +1012,46 @@ const Funding = () => {
             </Card>
           </div>
         </section>
+         {/* Sponsorship types */}
+        <section className="border-t border-slate-100 bg-white px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="text-center text-2xl font-bold text-slate-900">What funders can cover</h2>
+            <div className="mt-10 grid gap-6 md:grid-cols-2">
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm">
+                  <GraduationCap className="h-5 w-5 text-rose-600" aria-hidden />
+                </div>
+                <h3 className="mt-4 font-bold text-slate-900">Tutoring sessions</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Pre-paid blocks of one-to-one or small-group tutoring through Intellectus
+                  Academy—aligned to the student&apos;s modules and exam calendar.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm">
+                  <BookOpen className="h-5 w-5 text-amber-700" aria-hidden />
+                </div>
+                <h3 className="mt-4 font-bold text-slate-900">Textbooks</h3>
+                <p className="mt-2 text-sm text-slate-600">
+                  Credits or bundles linked to the Intellectus Marketplace so students can buy
+                  second-hand titles at fair prices from peers.
+                </p>
+                <Link
+                  to="/marketplace"
+                  className="mt-3 inline-flex text-sm font-semibold text-rose-700 underline-offset-4 hover:underline"
+                >
+                  Open marketplace
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
 
         {/* Funder browse */}
         <section
           id="browse-profiles"
-          className="scroll-mt-24 border-t border-slate-100 bg-gradient-to-b from-white to-slate-50 px-4 py-16 sm:px-6 lg:px-8"
+          className="scroll-mt-24 border-t border-slate-100 bg-gradient-to-b from-yellow-50 via-amber-50 to-stone-100 px-4 py-16 sm:px-6 lg:px-8"
         >
           <div className="mx-auto max-w-5xl">
             <div className="flex items-center gap-2 text-amber-800">
@@ -948,18 +1064,33 @@ const Funding = () => {
               student summary pre-filled to{" "}
               <span className="font-mono text-sm text-slate-800">{CONTACT_EMAIL}</span>.
             </p>
-            <div className="mt-5 rounded-xl border border-slate-200 bg-white p-4">
-              <label className="text-sm font-semibold text-slate-800" htmlFor="manage-email">
-                Students: enter your profile email to edit or remove your card
-              </label>
-              <input
-                id="manage-email"
-                type="email"
-                className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
-                value={manageEmail}
-                onChange={(e) => setManageEmail(e.target.value)}
-                placeholder="same email used when profile was created"
-              />
+            <div className="mt-5 space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+              <div>
+                <label className="text-sm font-semibold text-slate-800" htmlFor="manage-email">
+                  Students: enter your profile email and password to edit or remove your card
+                </label>
+                <input
+                  id="manage-email"
+                  type="email"
+                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                  value={manageEmail}
+                  onChange={(e) => setManageEmail(e.target.value)}
+                  placeholder="same email used when profile was created"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-semibold text-slate-800" htmlFor="manage-password">
+                  Password
+                </label>
+                <input
+                  id="manage-password"
+                  type="password"
+                  className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-slate-900 outline-none ring-rose-300 focus:ring-2"
+                  value={managePassword}
+                  onChange={(e) => setManagePassword(e.target.value)}
+                  placeholder="enter your password"
+                />
+              </div>
             </div>
 
             {profilesLoading ? (
@@ -969,14 +1100,6 @@ const Funding = () => {
             ) : profilesError ? (
               <div className="mt-10 rounded-2xl border border-dashed border-rose-200 bg-rose-50 p-12 text-center text-rose-700">
                 <p className="font-medium">{profilesError}</p>
-              </div>
-            ) : profiles.length === 0 ? (
-              <div className="mt-10 rounded-2xl border border-dashed border-slate-200 bg-white p-12 text-center text-slate-500">
-                <p className="font-medium text-slate-700">No profiles yet</p>
-                <p className="mt-2 text-sm">
-                  Students can publish a profile using the form above. Profiles appear here
-                  for all visitors once saved.
-                </p>
               </div>
             ) : (
               <>
@@ -995,7 +1118,8 @@ const Funding = () => {
                           </h3>
                           <p className="mt-1 max-w-xl text-sm leading-relaxed text-slate-600">
                             Search by display name, or narrow by age, subject, school, or place.
-                            Only profiles that match every field you fill in are shown.
+                            The featured profile is listed when it matches your filters. Other
+                            listings must match every field you use.
                           </p>
                         </div>
                       </div>
@@ -1136,7 +1260,7 @@ const Funding = () => {
                   </div>
                 </div>
 
-                {filteredProfiles.length === 0 ? (
+                {displayProfiles.length === 0 ? (
                   <div className="mt-10 rounded-2xl border border-dashed border-amber-200 bg-white p-10 text-center text-slate-600">
                     <p className="font-medium text-slate-800">No profiles match your search</p>
                     <p className="mt-2 text-sm text-slate-500">
@@ -1146,9 +1270,15 @@ const Funding = () => {
                   </div>
                 ) : (
               <ul className="mt-10 grid gap-6 sm:grid-cols-2">
-                {filteredProfiles.map((p) => (
+                {displayProfiles.map((p) => (
                   <li key={p.id}>
-                    <Card className="h-full border-slate-200 shadow-sm transition-shadow hover:shadow-md">
+                    <Card
+                      className={`h-full shadow-sm transition-shadow hover:shadow-md ${
+                        p.isPinned
+                          ? "border-2 border-rose-200/90 bg-gradient-to-b from-rose-50/40 to-white"
+                          : "border border-slate-200"
+                      }`}
+                    >
                       <CardHeader className="pb-2">
                         <div className="mb-2 flex items-center gap-3">
                           {p.profileImageDataUrl ? (
@@ -1173,7 +1303,14 @@ const Funding = () => {
                             </a>
                           )}
                         </div>
-                        <CardTitle className="text-lg text-slate-900">{p.displayName}</CardTitle>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <CardTitle className="text-lg text-slate-900">{p.displayName}</CardTitle>
+                          {p.isPinned ? (
+                            <span className="inline-flex items-center rounded-full bg-rose-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">
+                              Featured
+                            </span>
+                          ) : null}
+                        </div>
                         <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
                           {p.studyLevel} · {p.city}
                           {typeof p.age === "number" ? ` · Age ${p.age}` : ""}
@@ -1233,7 +1370,9 @@ const Funding = () => {
                               Fund textbooks
                             </Button>
                           )}
-                          {manageEmail.trim().toLowerCase() === p.studentEmail && (
+                          {!p.isPinned &&
+                            manageEmail.trim().toLowerCase() === p.studentEmail &&
+                            managePassword.trim() === p.studentPassword && (
                             <>
                               <Button
                                 type="button"
@@ -1267,51 +1406,17 @@ const Funding = () => {
           </div>
         </section>
 
-        {/* Sponsorship types */}
-        <section className="border-t border-slate-100 bg-white px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold text-slate-900">What funders can cover</h2>
-            <div className="mt-10 grid gap-6 md:grid-cols-2">
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm">
-                  <GraduationCap className="h-5 w-5 text-rose-600" aria-hidden />
-                </div>
-                <h3 className="mt-4 font-bold text-slate-900">Tutoring sessions</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Pre-paid blocks of one-to-one or small-group tutoring through Intellectus
-                  Academy—aligned to the student&apos;s modules and exam calendar.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white shadow-sm">
-                  <BookOpen className="h-5 w-5 text-amber-700" aria-hidden />
-                </div>
-                <h3 className="mt-4 font-bold text-slate-900">Textbooks</h3>
-                <p className="mt-2 text-sm text-slate-600">
-                  Credits or bundles linked to the Intellectus Marketplace so students can buy
-                  second-hand titles at fair prices from peers.
-                </p>
-                <Link
-                  to="/marketplace"
-                  className="mt-3 inline-flex text-sm font-semibold text-rose-700 underline-offset-4 hover:underline"
-                >
-                  Open marketplace
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
+       
         {/* CTA */}
-        <section className="border-t border-rose-100 bg-gradient-to-r from-rose-600 to-rose-500 px-4 py-14 text-center sm:px-6">
+        <section className="border-t border-slate-200 bg-gradient-to-r from-slate-700 to-slate-600 px-4 py-14 text-center sm:px-6">
           <h2 className="text-2xl font-bold text-white sm:text-3xl">Questions about sponsoring?</h2>
-          <p className="mx-auto mt-2 max-w-xl text-rose-100">
+          <p className="mx-auto mt-2 max-w-xl text-slate-200">
             Tell us whether you are an individual, family trust, or company—we&apos;ll explain
             options, tax documentation where applicable, and how students are verified.
           </p>
           <Button
             href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Intellectus Funding — sponsor enquiry")}`}
-            className="mt-8 rounded-full bg-white px-8 text-rose-700 hover:bg-rose-50"
+            className="mt-8 rounded-full bg-rose-500 px-8 text-white hover:bg-rose-600"
           >
             Email Intellectus Funding
           </Button>
