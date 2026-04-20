@@ -10,7 +10,7 @@ const platforms = [
     image: "images/Tutoring.jpg", // update to your row image
     background: "#1ac8db",
     ctaLabel: "Explore Academy",
-    ctaHref: "#academy",
+    ctaHref: "https://leigthon.github.io/Intellectus-Tutoring/",
   },
   {
     id: "funding",
